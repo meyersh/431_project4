@@ -1,0 +1,210 @@
+<html>
+<head>
+<title>Project3: Machine Learning and Pente</title>
+
+<!-- load up the jQuery junk -->
+
+<link 
+   href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" 
+   rel="stylesheet" type="text/css"/>
+
+<link
+   href="css/pente.css"
+   rel="stylesheet" type="text/css"/>
+
+<script 
+   src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js">
+</script>
+<script 
+   src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js">
+</script>
+
+<script
+   src="js/ajax.js">
+</script>
+
+<script
+   src="js/pente.js">
+</script>
+  
+
+</head>
+<body>
+
+  <input type="hidden" id="white_positions"/>
+  <input type="hidden" id="black_positions"/>
+
+<div id="info" class="info message">
+		 <h3>FYI, something just happened!</h3>
+		 <p>This is just an info notification message.</p>
+</div>
+
+<div id="warning" class="warning message">
+		 <h3>Wait, I must warn you!</h3>
+		 <p>This is just a warning notification message.</p>
+</div>
+
+<div id="error" class="error message">
+		 <h3>Ups, an error ocurred</h3>
+		 <p>This is just an error notification message.</p>
+
+</div>
+
+<div id="success" class="success message">
+		 <h3>Congrats, you did it!</h3>
+		 <p>This is just a success notification message.</p>
+
+</div>
+
+
+
+<div id="accordion">
+	<h3><a href="JavaScript:;">Create a Game</a></h3>
+	<div id="title">
+	  <p>Oh yeah, creating a game.</p>
+	  <p>Once you choose a color, you'll be ready!</p>
+	  <form> 
+		<select id="player_configuration">
+		  <option value="hh1">Play first against another human</option>
+		  <option value="hh2">Play second against another human</option>
+		  <option value="hc1">Play first against the computer</option>
+		  <option value="hc2">Play second against the computer</option>
+		</select>
+
+		<input type="button" value="Create Game"
+		       onClick="create_game();"/>
+	  </form>
+	</div><!-- end of create-a-game -->
+
+	<h3><a href="#">Join a game</a></h3>
+	<div class="content">
+	
+      <div class="game_right">
+	  <form>
+		<input type="text" class="defaultText" id="gameid" title="gameid"/><br/>
+		<input type="text" class="defaultText" id="sessionid" title="sessionid"/><br/>
+		<input type="button" value="Join" id="joinButton" onClick="join_game();"/>
+		<input type="button" id="clear" value="Clear"
+               onClick="reset_state();"/>
+		<input type="button" value="Refresh board" onClick="check_for_move()" />
+        <!-- For debugging
+        <input type="button" value="whtCap" onClick="add_capture_to_table('WHITE');">
+        <input type="button" value="blkCap" onClick="add_capture_to_table('BLACK');">
+        
+        <input type="button" value="neighbor(null, window.dir.NE)" 
+               onClick="get_neighbor(get_neighbor(null, window.dir.NE), window.dir.SW);"/>
+        -->
+        
+	  </form>
+
+      <div id="captures_table_div">
+        <table class="captures_table">
+          <tr>
+            <td colspan=2>Captures</td>
+          </tr>
+          <tr>
+            <td>White</td><td>Black</td>
+          </tr>
+          <tr>
+            <td id="white_captures"></td>
+            <td id="black_captures"></td>
+          </tr>
+        </table>
+      </div> <!-- end of captures-table-div -->
+	  </div>
+
+      <div class="game_left" id="board"></div>
+
+
+	</div><!-- end of join-a-game -->
+
+	<h3><a href="#">Credits</a></h3>
+	<div>
+	  <p><a href="http://www.red-team-design.com/wp-content/uploads/2011/07/cool-notification-messages-with-css3-and-jquery-demo.html">Cool notification messages</a></p>
+	  <p><a href="http://docs.jquery.com/UI/Accordion">jQuery accordion</a></p>
+	  <p><a href="http://www.pente.net/">Pente Board</a></p>
+
+		<p>
+		Cras dictum. Pellentesque habitant morbi tristique senectus et netus
+		et malesuada fames ac turpis egestas. Vestibulum ante ipsum primis in
+		faucibus orci luctus et ultrices posuere cubilia Curae; Aenean lacinia
+		mauris vel est.
+		</p>
+		<p>
+		Suspendisse eu nisl. Nullam ut libero. Integer dignissim consequat lectus.
+		Class aptent taciti sociosqu ad litora torquent per conubia nostra, per
+		inceptos himenaeos.
+		</p>
+	</div>
+
+	<h3><a href="#">ResponseSpot</a></h3>
+	<div id="responseSpot"></div>
+</div>
+
+
+
+  <script>
+  /* This took WAY TOO LONG to work out. */
+  $(document).ready(function() {
+    $("#accordion").accordion(
+      {
+       active:false, 
+       collapsible:true,
+       fillSpace:true,
+       autoHeight:true
+      });
+
+  $(window).resize(function () {
+    $("#accordion").accordion("resize");
+    });
+
+
+    draw_board();
+
+    $(".defaultText").focus(function(srcc)
+    {
+        if ($(this).val() == $(this)[0].title)
+        {
+            $(this).removeClass("defaultTextActive");
+            $(this).val("");
+        }
+    });
+    
+    $(".defaultText").blur(function()
+    {
+        if ($(this).val() == "")
+        {
+            $(this).addClass("defaultTextActive");
+            $(this).val($(this)[0].title);
+        }
+    });
+    
+    $(".defaultText").blur();    
+
+    // join game on enter key.
+    $("#gameid").keyup(function(event){
+      if(event.keyCode == 13)
+        $("#joinButton").click();
+      });
+
+  hideAllMessages();
+
+  // Show message
+  for(var i=0;i<myMessages.length;i++)
+	 {
+	initMessage(myMessages[i]);
+	 }
+  
+  // When message is clicked, hide it
+  $('.message').click(function(){			  
+    $(this).animate({top: -$(this).outerHeight()}, 500);
+  });	
+
+
+  });
+  </script>
+
+
+</body>
+</html>
+

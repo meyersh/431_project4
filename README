@@ -1,0 +1,73 @@
+Project 3: Machine learning (Pente webapp)
+Aaron Book, Max Bussiere, and Shaun Meyer
+
+TODO: 
+  - ?
+
+-=CGI Server=-
+
+session.hpp: 
+  - This library provides session functions to easily
+    load/edit/describe the game sessions.
+  
+session.cpp: 
+  - This is a simple test program which demonstrates functions from
+    session.hpp.
+
+wlm.hpp 
+  - This header file describes the State and Weight objects as
+    well as the Vhat() and learning routines.
+
+wlm.cpp 
+  - This is a simple test program for testing wlm.hpp routines
+
+project3.cgi: 
+  - This will be the cgi which is called from the web. It
+    integrates sessions, games, and provides the API to the client.
+
+Pente.hpp: 
+  - This describes the game configuration and interfaces with
+    the learning machine by providing an interface to state(). We provide
+    a make_move() function by passing in the Weights object as a
+    reference. (Because Vhat is defined as Weights::Vhat().) 
+  - All Xi variables are defined here in Pente::toState()
+
+pente.cpp
+  - This is the set of test-routines for Pente.hpp. If we are correct,
+    this defends against regressions in Pente.hpp.
+
+shgame.cpp
+  - A simple utility to display the state of a game file (passed as a
+    cli parameter). Useful for debugging game idiosyncracies.
+
+trainer.cpp
+  - The training tool, runs a two opposing computer instances and 
+    adjusts weights based on the resulting gametrace. compile with
+    '-O3' option for maximum performance.  
+
+batch_train.sh
+  - Shell script to run trainer 1500 times.
+
+-=HTML Client=-
+  index.html 
+  - Simple html.
+  
+  js/ajax.js
+  - All API and AJAX calls happen here.
+ 
+  js/pente.js
+  - Routines to draw the board (as well as defining CGI_URL) occur here.
+
+  css/*.css
+  - Styles
+
+  images/*.gif
+  - Stolen images from pente.net
+
+- games are stored in GAMES_DIRECTORY (defined in wlm.hpp) as "games/"
+- "weights.txt" stores the persistent 'weights'. It is defined in
+   wlm.hpp
+
+
+
+
