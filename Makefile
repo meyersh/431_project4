@@ -2,6 +2,9 @@ CXX=g++
 #project3: wlm.hpp project3.cpp
 #	LANG=C $(CXX) project3.cpp -o project3
 
+fanntest: fanntest.cpp
+	g++ fanntest.cpp -lfann -o fanntest
+
 install: project3.cgi
 	cp weights.txt ~/public_html/431/pente/
 	cp project3.cgi ~/public_html/431/pente/
