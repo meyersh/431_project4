@@ -5,6 +5,9 @@ CXX=g++
 fanntest: fanntest.cpp
 	g++ fanntest.cpp -lfann -o fanntest
 
+fannrun: fannrun.cpp
+	g++ fannrun.cpp -lfann -o fannrun
+
 install: project3.cgi
 	cp weights.txt ~/public_html/431/pente/
 	cp project3.cgi ~/public_html/431/pente/
