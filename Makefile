@@ -2,6 +2,9 @@ CXX=g++
 #project3: wlm.hpp project3.cpp
 #	LANG=C $(CXX) project3.cpp -o project3
 
+neural: neural.cpp
+	g++ neural.cpp -lfann -o neural
+
 neural_trainer: neural_trainer.cpp
 	g++ neural_trainer.cpp -lfann -o neural_trainer
 
