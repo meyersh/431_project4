@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
             if (p2->getCell(i)->color == EMPTY)
                 continue;
             
-            cout << "p->playMove(" << p2->getCell(i)->r << "," << 
+            cout << "p->playToken(" << p2->getCell(i)->r << "," << 
                 p2->getCell(i)->c << ",";
             
             if (p2->getCell(i)->color == WHITE)
