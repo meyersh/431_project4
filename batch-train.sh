@@ -3,6 +3,6 @@ MAX=1500
 
 for x in `seq $MAX`; do
     echo "Processing $x/$MAX"
-    ./trainer
+    ./neural_trainer
 #    cat -n weights.txt
 done
