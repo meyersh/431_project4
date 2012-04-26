@@ -22,8 +22,7 @@ template<class V> vector<V> multiplyVectors(vector<V> a, vector<V> b) {
 }
 
 template<class V> double sumVector(vector<V> a) {
-    // Taking two vectors of the same length, multiply them and
-    // return the result as a vector.
+    // Sum the contents of a vector.
 
     double res = 0;
     for (int i = 0; i < a.size(); i++)
