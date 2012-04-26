@@ -133,6 +133,10 @@ public:
     State toState();    
     State toStateOld();
     State tryMove(int r, int c, int color);
+    int RowColToIndex(int r, int c);
+    fann_type *neural_inputs();
+    float toValue();
+
     void makeMove(Weight &weight);
 
 
@@ -1149,51 +1153,84 @@ State PenteNeuralAI::tryMove(int r, int c, int color) {
 
     return s;
 }
+ 
+int PenteNeuralAI::RowColToIndex(int r, int c) {
+    return (r*19)+c;
+}
+
+fann_type *PenteNeuralAI::neural_inputs() {
+    fann_type *res = (fann_type*)malloc((Board.size()+2) * sizeof(fann_type));
+
+    int computer_color = playerColor("COMPUTER");
+
+    for (int i = 0; i < Board.size(); i++) {
+
+        if (Board[i]->color == computer_color)
+            res[i] = 1.0;
+        else if (Board[i]->color == opposite_color(computer_color))
+            res[i] = -1.0;
+        else
+            res[i] = 0;
+    }
+
+    res[Board.size()] = captures(computer_color);
+    res[Board.size()+1] = captures(opposite_color(computer_color));
+
+    return res;
+}
+
+float PenteNeuralAI::toValue() {
+    // Return the neural network output for the current board configuration.
+
+    fann *ann = fann_create_from_file("pente.net");
+    fann_type *output = fann_run(ann, neural_inputs());
+
+    return (float)output[0];
+
+}
 
 void PenteNeuralAI::makeMove(Weight &weight) {
     // Make a computerized move.
     srand(weight.random());
     vector<cell*> possible_moves = getEmpty();
     //random_shuffle(possible_moves.begin(), possible_moves.end());
-    cell* best_move = possible_moves[0];
+
+    cell* best_move = NULL;
+    float best_value = 0;
 
     // Figure out our color
     int computer_color = playerColor("COMPUTER");
+
+    // Load up our Neural Network.
     fann *ann = fann_create_from_file("pente.net");
     
-    // Our input vector: -1 for opponent piece, 0 for none, 1 for ours. 
-    vector<double> input(Board.size());
+    // Our input array: -1 for opponent piece, 0 for none, 1 for ours. 
+    fann_type *input = neural_inputs();
 
+    // Find the best move we can make:
+    for (int i = 0; i < possible_moves.size(); i++) {
 
-    for (int i = 0; i < Board.size(); i++) {
+        // Mark our imaginary move (note: this doesn't really see captures.)
+        playToken(possible_moves[i]->r, possible_moves[i]->c, computer_color);
 
-        if (Board[i]->color == computer_color)
-            input[i] = 1.0;
-        else if (Board[i]->color == opposite_color(computer_color))
-            input[i] = -1.0;
-        else
-            input[i] = 0;
+        // process the board with the neural net:    
+        fann_type *output = fann_run(ann, neural_inputs());
 
+        // Remember this move it is the best we've seen so far.
+        // Also: short-circuit for pentes. 
+        if (output[0] > best_value || best_move == NULL || nInARow(5, computer_color) == 1) {
+            best_value = output[0];
+            best_move = possible_moves[i];
+            }
+
+        // Unmark our imaginary move.
+        unPlayToken();
     }
 
-    // process the board with the neural net:
-    fann_type *output = fann_run(ann, (fann_type*)&input[0]);
+    // Clean up our Neural Network
+    fann_destroy(ann);
 
-    // The best value is the first valid move. 
-    float best_value = output[(possible_moves[0]->r * 19) + possible_moves[0]->c];
-    
-    
-    // find the best valid move from output[]
-    for (int i = 0; i < Board.size(); i++) {
-        if (Board[i]->color)
-            continue; // skip filled cells
-
-        if (output[i] > best_value) {
-            best_value = output[i];
-            best_move = getCell(i);
-        }
-
-    } // end for
+    //cout << best_value << endl;
 
     // Make the _BEST_ move.
     playToken(best_move->r, best_move->c, computer_color);

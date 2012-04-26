@@ -25,36 +25,33 @@ int main(int argc, char **argv) {
 
     // for init, don't read in the file but init to 0's.
     if (argc > 1 && string(argv[1]) == "init") {
-        const unsigned int num_layers = 3;
-        const unsigned int num_input = 20;
+        const unsigned int num_layers = 4;
+
+        const unsigned int num_input = p1->Board.size()+2; // plus ours and theirs captures.
         const unsigned int num_output = 1;
         
-        const unsigned int num_neurons_hidden_a = 30;
+        const unsigned int num_neurons_hidden_a = p1->Board.size()*2;
+        const unsigned int num_neurons_hidden_b = 35;
 
         const float desired_error = (const float) 0.001;
         
         struct fann *ann = fann_create_standard(num_layers,
                                                 num_input,
                                                 num_neurons_hidden_a,
+                                                num_neurons_hidden_b,
                                                 num_output);
 
         fann_set_activation_function_hidden(ann, FANN_SIGMOID_SYMMETRIC);
-        fann_set_activation_function_output(ann, FANN_SIGMOID_SYMMETRIC);
+        fann_set_activation_function_output(ann, FANN_LINEAR);
 
         fann_save(ann, "pente.net");
         fann_destroy(ann);
 
         exit(0);
         
-        /* weights.w.resize(p1->toState().size() + 1);
-        for (int i = 1; i < weights.size(); i++)
-            weights[i] = 2;
-        
-        weights.save();
-        cout << "reinitializing weights..." << endl;*/
     }
-    else
-        weights.load();
+
+    weights.load();
 
 	// Play a game with 0 players.
 	while (p1->gameOutcome(WHITE) == 0) {
@@ -86,8 +83,8 @@ int main(int argc, char **argv) {
 		 << "blkCaps -> " << p1->blkCaps << endl
 		 << p2->toString() << endl << endl;
 
+
 	// Analyze the game and adjust weights accordingly.
-    exit(1); // not yet.
 
 	/* Vtrain(b) <- V(Successor(b)) */
 	/* Adjust weights with wi <- wi + n(Vtrain(b) - V(b))*xi */
@@ -123,7 +120,7 @@ int main(int argc, char **argv) {
         // use the vhat() as the expected output to train the network. 
 
         fann_train(ann,
-                   (fann_type*)&b.x[0], /* The state values */
+                   game->neural_inputs(), /* The game inputs */
                    (fann_type*)&desired_output[0]);
 
 		weights.adjust(b, error);
@@ -144,20 +141,21 @@ int main(int argc, char **argv) {
 
 			b = game->toState();
 
-			error = weights.Vhat(successor) - weights.Vhat(b);
+            if (getenv("VERBOSE") != NULL) {
+                error = weights.Vhat(b) - game->toValue();
+                cout << error << " ";
+            }
 
-			weights.adjust(game->toState(), error);
 
-            cout << error << " ";
+
+
 		}
         cout << endl;
 	   
 	}
-    cout << "Weights: " << weights.toString() << endl;
 
-    weights.save();
     fann_save(ann, "pente.net");
-    fann_print_connections(ann);
+    //fann_print_connections(ann);
     fann_destroy(ann);
 	return 0;
 
