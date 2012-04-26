@@ -6,8 +6,8 @@ int main()
     const unsigned int num_input = 8;
     const unsigned int num_output = 8;
 
-    const unsigned int num_neurons_hidden_a = 3;
-    const unsigned int num_neurons_hidden_b = 4;
+    const unsigned int num_neurons_hidden_a = 4;
+    const unsigned int num_neurons_hidden_b = 12;
 
     const float desired_error = (const float) 0.001;
     const unsigned int max_epochs = 500000;

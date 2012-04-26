@@ -38,6 +38,8 @@ int main()
 
     calc_out = fann_run(ann, input);
 
+    fann_print_connections(ann);
+
     cout << "Identity test:" << endl
          << printArray(input, 8) << endl
          << printArray(calc_out, 8) << endl;
