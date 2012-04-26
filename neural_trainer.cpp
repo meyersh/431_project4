@@ -1,6 +1,6 @@
 #include <iostream>
 #include "assert.h"
-#include "Pente.hpp"
+#include "neural.hpp"
 #include "wlm.hpp"
 #include <fann.h>
 
@@ -8,9 +8,9 @@ using namespace std;
 
 int main(int argc, char **argv) {
 
-	PenteLinearAI *p1, *p2;
-    p1 = new PenteLinearAI();
-    p2 = new PenteLinearAI();
+	PenteNeuralAI *p1, *p2;
+    p1 = new PenteNeuralAI();
+    p2 = new PenteNeuralAI();
 
     Weight weights(WEIGHTS_FILE); /* Vhat() loads the weight file automatically, but
                                      we want to keep it up to date between calculations
@@ -87,13 +87,13 @@ int main(int argc, char **argv) {
 		 << p2->toString() << endl << endl;
 
 	// Analyze the game and adjust weights accordingly.
-
+    exit(1); // not yet.
 
 	/* Vtrain(b) <- V(Successor(b)) */
 	/* Adjust weights with wi <- wi + n(Vtrain(b) - V(b))*xi */
 	
 
-	PenteLinearAI *games[] = {p1, p2};
+	PenteNeuralAI *games[] = {p1, p2};
 	int colors[] = {WHITE, BLACK};
 
     int computer_color; 
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < 2; i++) {
 		cout << "Analyzing P" << i << endl;
         cout << "eta: " << weights.eta << endl;
-		PenteLinearAI *game = games[i];
+		PenteNeuralAI *game = games[i];
         computer_color = game->playerColor("COMPUTER");
 
 
@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
 			successor = game->toState();
 		
 			// remember + remove the last move.
-			PenteLinearAI::cell* tCell = game->gametrace.back();
+			PenteNeuralAI::cell* tCell = game->gametrace.back();
 			game->gametrace.pop_back();
 			game->clearCell(tCell->r, tCell->c);
 
