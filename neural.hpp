@@ -259,16 +259,14 @@ void PenteNeuralAI::clearCell(int r, int c) {
 }
 
 vector<PenteNeuralAI::cell*> PenteNeuralAI::getFilled(int color) {
-    cell *t;
     vector<cell*> filled;
 
     if (!isValidColor(color))
         throw runtime_error("Invalid color.");
 
     for (int i = 0; i < Board.size(); i++) {
-        t = Board[i];
-        if (t->color == color)
-            filled.push_back(t);
+        if (getCell(i)->color == color)
+            filled.push_back(getCell(i));
     }
 
     return filled;
@@ -370,19 +368,19 @@ int PenteNeuralAI::getAllBlocks(int &D, int &T, int &Q, int &P, int color) {
             if (has_beginning_space && has_ending_space)
                 continue;
 
-            if (nxt && (!nxt->color || nxt->color != color))
+            //if (nxt && (!nxt->color || nxt->color != color)) // What is this even doing?
                 switch (count) {
                 case 5:
-                    P += has_beginning_space + has_ending_space;
-                    Q += has_beginning_space && has_ending_space; 
+                    P += !has_beginning_space + !has_ending_space;
+                    Q += !has_beginning_space && !has_ending_space; 
                 case 4:
-                    Q += has_beginning_space + has_ending_space;
-                    T += has_beginning_space && has_ending_space; 
+                    Q += !has_beginning_space + !has_ending_space;
+                    T += !has_beginning_space && !has_ending_space; 
                 case 3:
-                    T += has_beginning_space + has_ending_space;
-                    D += has_beginning_space && has_ending_space; 
+                    T += !has_beginning_space + !has_ending_space;
+                    D += !has_beginning_space && !has_ending_space; 
                 case 2:
-                    D += has_beginning_space + has_ending_space;
+                    D += !has_beginning_space + !has_ending_space;
                 default:
                     break;
                 }
@@ -403,7 +401,7 @@ int PenteNeuralAI::getCertainSpaces(int &D, int &T, int &Q, int &P, int color) {
     if (!isValidColor(color))
         throw runtime_error("Invalid color");
 
-    if (filled.size() == 0)
+    if (filled.empty())
         return 0;
 
     for (int i = 0; i < filled.size(); i++) {
@@ -411,37 +409,40 @@ int PenteNeuralAI::getCertainSpaces(int &D, int &T, int &Q, int &P, int color) {
         for (int j = 4; j < 8; j++) {
             int count = 1;
             bool has_beginning_space = false;
-            bool has_ending_space = false;
+            bool has_ending_space    = false;
 
-            // Check for leading space
-            if (tCell->neighbors[j-4] && !tCell->neighbors[j-4]->color)
-                has_beginning_space = true;
+            // Look behind for a few tests.
+            if (tCell->neighbors[j-4]) {
+            
+                // Check for leading space
+                if (tCell->neighbors[j-4]->color == EMPTY) 
+                    has_beginning_space = true;
+            
+                // Skip cells we've already visited.
+                else if (tCell->neighbors[j-4]->color == color) 
+                    continue;
 
-            // Skip cells we've already visited.
-            if ((tCell->neighbors[j - 4] != NULL)
-                && (tCell->neighbors[j - 4]->color == color)) {
-                continue;
-            }
-
+            } else
+                has_beginning_space = false;
+            
+            
             nxt = tCell->neighbors[j];
-            while ((nxt != NULL) && (nxt->color)) {
-                if (nxt->color == color)
-                    count++;
-                else {
-                    has_ending_space = false;
-                    break;
-                }
+
+            // Count up the number of `color` in a row. 
+            while (nxt && nxt->color == color) {
+                count++;
                 nxt = nxt->neighbors[j];
             }
             
-            if (nxt && !nxt->color)
+            // Check for a trailing space
+            if (nxt && nxt->color == EMPTY)
                 has_ending_space = true;
             
             // no beginning and no ending spaces:
             if (!has_beginning_space && !has_ending_space)
                 continue;
 
-            if (nxt && (!nxt->color || nxt->color != color))
+            /*            if (nxt && (!nxt->color || nxt->color != color))*/ // What is this even doing?
                 switch (count) {
                 case 5:
                     P += has_beginning_space + has_ending_space;
@@ -1159,22 +1160,14 @@ int PenteNeuralAI::RowColToIndex(int r, int c) {
 }
 
 fann_type *PenteNeuralAI::neural_inputs() {
-    fann_type *res = (fann_type*)malloc((Board.size()+2) * sizeof(fann_type));
+    fann_type *res = (fann_type*)malloc(20 * sizeof(fann_type));
 
-    int computer_color = playerColor("COMPUTER");
+    State b = toState();
 
-    for (int i = 0; i < Board.size(); i++) {
-
-        if (Board[i]->color == computer_color)
-            res[i] = 1.0;
-        else if (Board[i]->color == opposite_color(computer_color))
-            res[i] = -1.0;
-        else
-            res[i] = 0;
+    for (int i = 0; i < b.size(); i++) {
+        res[i] = b[i];
+        
     }
-
-    res[Board.size()] = captures(computer_color);
-    res[Board.size()+1] = captures(opposite_color(computer_color));
 
     return res;
 }
@@ -1210,15 +1203,15 @@ void PenteNeuralAI::makeMove(Weight &weight) {
     // Find the best move we can make:
     for (int i = 0; i < possible_moves.size(); i++) {
 
-        // Mark our imaginary move (note: this doesn't really see captures.)
+        // Mark our imaginary move
         playToken(possible_moves[i]->r, possible_moves[i]->c, computer_color);
 
         // process the board with the neural net:    
         fann_type *output = fann_run(ann, neural_inputs());
 
-        // Remember this move it is the best we've seen so far.
+        // Remember this move if it is the best we've seen so far.
         // Also: short-circuit for pentes. 
-        if (output[0] > best_value || best_move == NULL || nInARow(5, computer_color) == 1) {
+        if (output[0] > best_value || best_move == NULL) {
             best_value = output[0];
             best_move = possible_moves[i];
             }
