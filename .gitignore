@@ -11,3 +11,6 @@ time
 *.core
 analyze_game
 neural
+fannrun
+fanntest
+neural_trainer
