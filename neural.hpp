@@ -18,6 +18,7 @@
 #include <cctype>
 #include <stdexcept>
 #include <fann.h>
+#include <assert.h>
 #include "wlm.hpp"
 #include "game.hpp"
 
@@ -48,7 +49,7 @@ public:
     /* Data Members */
     int board_size;
     int turn; // turn number.
-    string players[2];
+
     int blkCaps;
     int whtCaps;
     vector<cell*> gametrace;
@@ -83,9 +84,7 @@ public:
             throw new logic_error("Captures must be WHITE or BLACK.");
     }
 
-    char opposite_color(char color) {
-        return (color == WHITE) ? BLACK : WHITE;
-    }
+
 
     void _initBoard_();
     void _killBoard_();
@@ -120,7 +119,9 @@ public:
     string serialize();
     void deserialize(ifstream &f);
     vector<cell*> getEmpty();
-
+    int oppositeColor(int color) {
+        return (color == WHITE) ? BLACK : WHITE;
+    }
     int playerNumber(string sessionid);
     int playerColor(string sessionid);
     string playerTurn();
@@ -131,7 +132,7 @@ public:
 
 
     State toState();    
-    State toStateOld();
+
     State tryMove(int r, int c, int color);
     int RowColToIndex(int r, int c);
     fann_type *neural_inputs();
@@ -212,7 +213,7 @@ bool PenteNeuralAI::isValidCoords(int r, int c) {
 }
 
 bool PenteNeuralAI::isValidColor(int color) {
-    return (toupper(color) == BLACK || toupper(color) == WHITE);
+    return (color == BLACK || color == WHITE);
 }
 
 bool PenteNeuralAI::isEmpty(int r, int c) {
@@ -261,8 +262,11 @@ void PenteNeuralAI::clearCell(int r, int c) {
 vector<PenteNeuralAI::cell*> PenteNeuralAI::getFilled(int color) {
     vector<cell*> filled;
 
-    if (!isValidColor(color))
-        throw runtime_error("Invalid color.");
+    if (!isValidColor(color)) {
+        stringstream msg;
+        msg << "Invalid color: '" << color << "'";
+        throw runtime_error(msg.str());
+    }
 
     for (int i = 0; i < Board.size(); i++) {
         if (getCell(i)->color == color)
@@ -601,7 +605,7 @@ int PenteNeuralAI::chkCapture(int r, int c, int color, bool remove) {
        always return the number of captures at r,c for `color`. */
 
     cell *tCell, *one, *two, *end;
-    int eColor = ((color == BLACK) ? WHITE : BLACK);
+    int eColor = oppositeColor(color);
     tCell = getCell(r,c);
     int caps = 0;
 
@@ -942,9 +946,9 @@ void PenteNeuralAI::unPlayToken() {
             PenteNeuralAI::cell *tCell;
 
             // This is the color of the pieces which were captured.
-            int capture_color = (last_move_color == WHITE) ? BLACK : WHITE;
+            int capture_color = oppositeColor(last_move_color);
 
-            // Reduce the capture count.
+            // Reduce the capture count if there were captures.
             captures(last_move_color) -= captureBuffer[last_turn].size()/2;
 
             if (captures(last_move_color) < 0)
@@ -970,13 +974,10 @@ void PenteNeuralAI::unPlayToken() {
 
 int PenteNeuralAI::gameOutcome(int color) {
     // Has a given color won, lost, or neither (yet)?
-    // Return 1, -1, 0 accordingly.
+    // Return LOST,  UNDETERMINED, or  WON.
+    enum {LOST = -1, UNDETERMINED = 0, WON = 1};
 
-    enum {
-        LOST = -1, UNDETERMINED = 0, WON = 1
-    };
-
-    int theirColor = opposite_color(color);
+    int theirColor = oppositeColor(color);
 
     if (captures(theirColor) >= 5)
         return LOST;
@@ -986,6 +987,7 @@ int PenteNeuralAI::gameOutcome(int color) {
 
     if (nInARow(5, color) > 0)
         return WON;
+
     if (nInARow(5, theirColor) > 0)
         return LOST;
 
@@ -1051,93 +1053,6 @@ State PenteNeuralAI::toState() {
 
     return s;
 
-}
-
-State PenteNeuralAI::toStateOld() {
-    /* X variables:
-       0: doubles (ours)
-       1: triples (ours)
-       2: quads (ours)
-       3: pentes (ours) // useful when looking at potential moves
-       4: possible captures (ours)
-       5: Resulting captures from the last move (ours).
-       6: Resulting 3x blocks (ours)
-       7: Resulting 4x blocks (ours)
-       8: Resulting 5x blocks (ours)
-       9: Proximity(ours, 2)
-       
-       10: doubles (theirs)
-       11: triples (theirs)
-       12: quads (theirs)
-       13: pentes (theirs) // useful when looking at potential moves
-       14: possible captures (theirs)
-       15: resulting captures from the last move (theirs)
-       16: Resulting 3x blocks (ours)
-       17: Resulting 4x blocks (ours)
-       18: Resulting 5x blocks (ours)
-       19: Proximity(theirs, 2)
-
-       
-    */
-
-    // Construct and return the state of the game.
-    State s(20);
-
-    int ours, theirs;
-
-    if (playerNumber("COMPUTER") == 0) {
-        ours = WHITE;
-        theirs = BLACK;
-    } else {
-        ours = BLACK;
-        theirs = WHITE;
-    }
-            
-
-    /*    if(playerNumber("COMPUTER")==0) {
-     */
-       
-    // Figure for our pieces...
-    getCertain(s[0], s[1], s[2], s[3], ours);
-    s[4] = getPossibleCaptures(ours);
-    s[5] = (gametrace.empty()) ? 0 : 
-        chkCapture( gametrace.back()->r, gametrace.back()->c,
-                    ours );
-
-    chkBlocks(s[6], s[7], s[8], ours);
-
-    s[9] = getProximity(ours, 2);
-    
-    // Figure for their pieces.
-    getCertain(s[10], s[11], s[12], s[13], theirs);
-    s[14] = getPossibleCaptures(theirs);
-    s[15] = (gametrace.empty()) ? 0 :
-        chkCapture( gametrace.back()->r, gametrace.back()->c,
-                    theirs );
-
-    chkBlocks(s[16], s[17], s[18], theirs);
-
-    s[19] = getProximity(theirs, 2);
-
-    /*
-      } else if(playerNumber("COMPUTER")==1) {
-      // Figure for black pieces...
-      getCertain(s[0], s[1], s[2], s[3], BLACK);
-      s[4] = getPossibleCaptures(BLACK);
-      s[5] = (gametrace.empty()) ? 0 : 
-      chkCapture( gametrace.back()->r, gametrace.back()->c,
-      gametrace.back()->color );
-      // Figure for white pieces.
-      getCertain(s[6], s[7], s[8], s[9], WHITE);
-      s[10] = getPossibleCaptures(WHITE);
-      s[11] = gametrace.empty() ? 0 :
-      chkCapture( gametrace.back()->r, gametrace.back()->c,
-      gametrace.back()->color );
-      } 
-        
-      //s[8] = (playerColor("COMPUTER"));
-      */
-    return s;
 }
 
 State PenteNeuralAI::tryMove(int r, int c, int color) {
