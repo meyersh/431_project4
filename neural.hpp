@@ -1186,7 +1186,7 @@ void PenteNeuralAI::makeMove(Weight &weight) {
     // Make a computerized move.
     srand(weight.random());
     vector<cell*> possible_moves = getEmpty();
-    //random_shuffle(possible_moves.begin(), possible_moves.end());
+    random_shuffle(possible_moves.begin(), possible_moves.end());
 
     cell* best_move = NULL;
     float best_value = 0;
