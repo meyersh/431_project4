@@ -13,7 +13,7 @@
 #include <vector>
 #include "session.hpp"
 #include "game.hpp"
-#include "Pente.hpp"
+#include "neural.hpp"
 
 using namespace std;
 

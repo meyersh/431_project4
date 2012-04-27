@@ -14,10 +14,13 @@ fanntest: fanntest.cpp
 fannrun: fannrun.cpp
 	g++ fannrun.cpp -lfann -o fannrun
 
-install: project3.cgi
-	cp weights.txt ~/public_html/431/pente/
-	cp project3.cgi ~/public_html/431/pente/
-	cp -R html/* ~/public_html/431/pente/
+project4.cgi: project4.cgi.cpp
+	g++ project4.cgi.cpp -lfann -o project4.cgi
+
+install: project4.cgi
+	cp pente.net ~/public_html/431/neuralpente/
+	cp project4.cgi ~/public_html/431/neuralpente/
+	cp -R html/* ~/public_html/431/neuralpente/
 
 clean:
 	rm *.core wlm session pente trainer
