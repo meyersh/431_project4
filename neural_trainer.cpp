@@ -30,8 +30,8 @@ int main(int argc, char **argv) {
         const unsigned int num_input = 20; // plus ours and theirs captures.
         const unsigned int num_output = 1;
         
-        const unsigned int num_neurons_hidden_a = 45;
-        const unsigned int num_neurons_hidden_b = 35;
+        const unsigned int num_neurons_hidden_a = 5;
+        const unsigned int num_neurons_hidden_b = 20;
 
         const float desired_error = (const float) 0.001;
         
@@ -63,6 +63,7 @@ int main(int argc, char **argv) {
 		// Copy the black move into p1
 		p1->playToken(p2->gametrace.back()->r, p2->gametrace.back()->c, BLACK);
 
+        // Quit for game-over
         if (p1->gameOutcome(WHITE) != 0)
             break;
         
