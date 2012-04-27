@@ -57,7 +57,7 @@ public:
 
     /* Member Functions */
     PenteNeuralAI() {
-        players[0] = players[1] = "WAITING";
+
         board_size = 19;
         turn = 0;
         _initBoard_();
