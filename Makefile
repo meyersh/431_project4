@@ -19,6 +19,7 @@ project4.cgi: project4.cgi.cpp
 
 install: project4.cgi
 	cp pente.net ~/public_html/431/neuralpente/
+	cp session-words.txt ~/public_html/431/neuralpente/
 	cp project4.cgi ~/public_html/431/neuralpente/
 	cp -R html/* ~/public_html/431/neuralpente/
 
