@@ -102,7 +102,7 @@ int main() {
                 die("Unable to create new game file at '" + 
                     string(gameid_file_path(gameid)) + "'.");
 
-            PenteGame *game;
+            PenteGame *game = new PenteNeuralAI();
 
             if (human_only) 
                 {
@@ -187,7 +187,7 @@ int main() {
             if (!gameid_exists(gameid))
                 die("No game identified by '" + gameid + "'.");
 
-            PenteGame *game;
+            PenteGame *game = new PenteNeuralAI();
 		
             ifstream game_file( gameid_file_path(gameid) );
             game->deserialize(game_file);
@@ -252,7 +252,7 @@ int main() {
             if (!gameid_exists(gameid))
                 die("No such gameid '" + gameid + "'.");
 
-            PenteGame *game;
+            PenteGame *game = new PenteNeuralAI();
             ifstream infile(gameid_file_path(gameid));
             game->deserialize( infile );
             infile.close();
@@ -338,7 +338,7 @@ int main() {
             }
 
             // Load the game for more checks
-            PenteGame *game;
+            PenteGame *game = new PenteNeuralAI();
             ifstream game_file( gameid_file_path(gameid) );
             game->deserialize(game_file);
             game_file.close();
