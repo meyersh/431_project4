@@ -1080,7 +1080,7 @@ fann_type *PenteNeuralAI::neural_inputs() {
     State b = toState();
 
     for (int i = 0; i < b.size(); i++) {
-        res[i] = b[i];
+        res[i] = (double)b[i]/100.0;
         
     }
 
