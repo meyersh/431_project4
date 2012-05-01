@@ -27,11 +27,11 @@ int main(int argc, char **argv) {
     if (argc > 1 && string(argv[1]) == "init") {
         const unsigned int num_layers = 3;
 
-        const unsigned int num_input = 20; // plus ours and theirs captures.
+        const unsigned int num_input = 20; // 20 states, 20 inputs.
         const unsigned int num_output = 1;
         
-        const unsigned int num_neurons_hidden_a = 5;
-        const unsigned int num_neurons_hidden_b = 20;
+        const unsigned int num_neurons_hidden_a = 1;
+        const unsigned int num_neurons_hidden_b = 2;
 
         const float desired_error = (const float) 0.001;
         
@@ -42,6 +42,7 @@ int main(int argc, char **argv) {
                                                 num_output);
 
         fann_set_activation_function_hidden(ann, FANN_SIGMOID_SYMMETRIC);
+        //fann_set_activation_function_hidden(ann, FANN_LINEAR);
         fann_set_activation_function_output(ann, FANN_LINEAR);
 
         fann_save(ann, "pente.net");
