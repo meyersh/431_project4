@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
             continue;
 
 		double error = 
-            game->toValue() - weightsVhat;
+            game->toValue(ann) - weightsVhat;
 
         fann_type desired_output[1] = {weightsVhat};
 
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
                    desired_output /* the expected outputs */);
 
         cout << "Initial error: (" << 
-            game->toValue() << "(value) - " << 
+            game->toValue(ann) << "(value) - " << 
             weights.Vhat(b) << "(vhat(b) )) = " << error << endl;
 
         cout << "Errors => ";
@@ -165,8 +165,8 @@ int main(int argc, char **argv) {
             weightsVhat = weights.Vhat(b);
 
             if (getenv("VERBOSE") != NULL) {
-                //error = weights.Vhat(b) - game->toValue();
-                cout << weightsVhat << ":" << game->toValue() << " ";
+                //error = weights.Vhat(b) - game->toValue(ann);
+                cout << weightsVhat << ":" << game->toValue(ann) << " ";
                 cout << b.toString() << endl;
             }
 
