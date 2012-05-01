@@ -136,7 +136,7 @@ public:
     State tryMove(int r, int c, int color);
     int RowColToIndex(int r, int c);
     fann_type *neural_inputs();
-    float toValue();
+    float toValue(fann *ann = NULL);
 
     void makeMove(Weight &weight);
 
@@ -892,7 +892,13 @@ int PenteNeuralAI::nInARow(int n, int color) {
             int count = 1;
             PenteNeuralAI::cell *nxt = tCell->neighbors[dir];
 
-            while (nxt && nxt->color) {
+            // Identify & Skip sets we've already seen.
+            if (tCell->neighbors[dir - 4]
+                && tCell->neighbors[dir - 4]->color == color) 
+                continue;
+
+            // Count up the colors in a row.
+            while (nxt && nxt->color && count <= n) {
                 if (nxt->color == color)
                     count++;
                 else
@@ -900,10 +906,6 @@ int PenteNeuralAI::nInARow(int n, int color) {
 
                 nxt = nxt->neighbors[dir];
             }
-
-            if (tCell->neighbors[dir - 4]
-                && tCell->neighbors[dir - 4]->color == color) 
-                continue;
 
             if (count == n)
                 found++;
@@ -1087,10 +1089,11 @@ fann_type *PenteNeuralAI::neural_inputs() {
     return res;
 }
 
-float PenteNeuralAI::toValue() {
+float PenteNeuralAI::toValue(fann *ann) {
     // Return the neural network output for the current board configuration.
+    if (ann == NULL)
+        ann = fann_create_from_file("pente.net");
 
-    fann *ann = fann_create_from_file("pente.net");
     fann_type *output = fann_run(ann, neural_inputs());
 
     return (float)output[0];

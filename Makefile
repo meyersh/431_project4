@@ -6,7 +6,7 @@ neural: neural.cpp
 	g++ neural.cpp -lfann -o neural
 
 neural_trainer: neural_trainer.cpp
-	g++ neural_trainer.cpp -lfann -o neural_trainer
+	g++ -O2 neural_trainer.cpp -lfann -o neural_trainer
 
 fanntest: fanntest.cpp
 	g++ fanntest.cpp -lfann -o fanntest
